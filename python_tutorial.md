@@ -2,11 +2,37 @@
 
 ### Asynchrony（同步） vs Asynchronous（异步）vs Coroutine（协程）
 
-Every asyncio program has at least one event loop. 
+同步（Synchronised）和异步（Asynchronized）的概念描述的是应用程序与内核的交互方式，同步是指应用程序发起 I/O 请求后需要等待或者轮询内核 I/O 操作完成后才能继续执行；而异步是指应用程序发起 I/O 请求后仍继续执行，当内核 I/O 操作完成后会通知应用程序，或者调用应用程序注册的回调函数。
 
-The *await* keyword suspends the execution of the current coroutine, and calls the specified awaitable.
+异步可以被用来解决I/O阻塞的问题。CPU的速度远远快于磁盘、网络等IO。在一个线程中，CPU执行代码的速度极快，然而，一旦遇到IO操作，如读写文件、发送网络数据时，就需要等待IO操作完成，才能继续进行下一步操作。我们称这种情况为同步IO或阻塞IO。
 
-Coroutine是比线程更轻量化的存在，像一个进程可以拥有多个线程一样，一个线程也可以拥有多个协程最重要的是，协程不是被操作系统内核所管理，而完全是由程序所控制
+在IO操作的过程中，当前线程被挂起，而其他需要CPU执行的代码就无法被当前线程执行了。
+
+因为一个IO操作就阻塞了当前线程，导致其他代码无法执行，所以我们必须使用多线程或者多进程来并发执行代码，为多个用户服务。每个用户都会分配一个线程，如果遇到IO导致线程被挂起，其他用户的线程不受影响。
+
+多线程和多进程的模型虽然解决了并发问题，但是系统不能无上限地增加线程。由于系统切换线程的开销也很大，所以，一旦线程数量过多，CPU的时间就花在线程切换上了，真正运行代码的时间就少了，结果导致性能严重下降。
+
+由于我们要解决的问题是CPU高速执行能力和IO设备的龟速严重不匹配，多线程和多进程只是解决这一问题的一种方法。
+
+另一种解决IO问题的方法是异步IO。当代码需要执行一个耗时的IO操作时，它只发出IO指令，并不等待IO结果，然后就去执行其他代码了。一段时间后，当IO返回结果时，再通知CPU进行处理。
+
+#### Coroutine（协程）
+
+在执行函数A时，可随时中断，去执行函数B，然后中断继续执行函数A（The *await* keyword suspends the execution of the current coroutine, and calls the specified awaitable.）
+
+##### 优势
+
+* 执行效率高，因为子程序切换不是线程切换且切换由内核管理，而是程序自身控制，因此，没有线程切换开销
+* 不需要多线程的锁机制，因为只有一个线程，也不存在同事写变量冲突，在协程中控制共享资源不加锁，只需要判断状态就好了，所以执行效率比多线程高很多
+
+##### 实现
+
+* Python对协程的支持，是通过生成器（Generator）实现的，协程师遵循某些规则的生成器。
+* Python 3.4后内置了asyncio标准库，官方真正实现了协程这一特性，3.5中引入async/await语法
+
+The await keyword tells Python not to wait for its completion; but to send the control back to the caller immediately and continue processing.
+
+https://www.liaoxuefeng.com/wiki/1016959663602400/1048430311230688
 
 https://www.cnblogs.com/dbf-/p/11143349.html
 
