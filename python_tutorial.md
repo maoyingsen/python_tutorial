@@ -6,7 +6,7 @@ Every asyncio program has at least one event loop.
 
 The *await* keyword suspends the execution of the current coroutine, and calls the specified awaitable.
 
-Coroutine是比线程更轻量化的存在，像一个进程可以拥有多个线程一样，一个线程也可
+Coroutine是比线程更轻量化的存在，像一个进程可以拥有多个线程一样，一个线程也可以拥有多个协程最重要的是，协程不是被操作系统内核所管理，而完全是由程序所控制
 
 https://www.cnblogs.com/dbf-/p/11143349.html
 
