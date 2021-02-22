@@ -1,10 +1,16 @@
 [toc]
 
-### Asynchrony（同步） vs Asynchronous（异步）vs Coroutine（协程）
+### Synchronous（同步） vs Asynchronous（异步）vs Coroutine（协程）
 
-同步（Synchronised）和异步（Asynchronized）的概念描述的是应用程序与内核的交互方式，同步是指应用程序发起 I/O 请求后需要等待或者轮询内核 I/O 操作完成后才能继续执行；而异步是指应用程序发起 I/O 请求后仍继续执行，当内核 I/O 操作完成后会通知应用程序，或者调用应用程序注册的回调函数。
+##### 什么是同步和异步？
 
-异步可以被用来解决I/O阻塞的问题。CPU的速度远远快于磁盘、网络等IO。在一个线程中，CPU执行代码的速度极快，然而，一旦遇到IO操作，如读写文件、发送网络数据时，就需要等待IO操作完成，才能继续进行下一步操作。我们称这种情况为同步IO或阻塞IO。
+同步和异步是计算机如何处理任务的思想，以下概念可以抽象描述此思想。需要说明的是，同步和异步与线程、进程、CPU无关，一个线程也可以实现异步。
+
+Oddly enough "Synchronously" means "using the same clock" so when two instructions are synchronous they use the same clock and must happen one after the other. "Asynchronous" means "not using the same clock" so the instructions are not concerned with being in step with each other. 
+
+##### 同步可能造成IO阻塞
+
+<img src="latency.PNG" alt="image" style="zoom:75%;" />
 
 在IO操作的过程中，当前线程被挂起，而其他需要CPU执行的代码就无法被当前线程执行了。
 
@@ -14,7 +20,25 @@
 
 由于我们要解决的问题是CPU高速执行能力和IO设备的龟速严重不匹配，多线程和多进程只是解决这一问题的一种方法。
 
-另一种解决IO问题的方法是异步IO。当代码需要执行一个耗时的IO操作时，它只发出IO指令，并不等待IO结果，然后就去执行其他代码了。一段时间后，当IO返回结果时，再通知CPU进行处理。
+##### 如何解决IO阻塞
+
+1. 多线程（multiproccessing)
+
+Multiprocessing is a form of *parallel computing*: instructions are executed in an *overlapping time frame* on *multiple physical processors or cores*.(任务在同一个时间窗口中在多个处理器或内核中执行) Each process spawned by the kernel incurs an overhead cost, including an independently-allocated chunk of memory (heap).
+
+2. 线程（Threading）
+
+Threading is an alternative to multiprocessing, unlike multiprocessing, however, threads exist entirely in a single kernel process, and share a single allocated heap.
+
+The primary downsides to Python threading are *memory safety* and *race conditions*. All child threads of a parent process operate in the same shared memory space. Without additional protections, one thread may overwrite a shared value in memory without other threads being aware of it. Such data corruption would be disastrous.
+
+3. 异步（Asynchrony）
+
+当代码需要执行一个耗时的IO操作时（发送IO阻塞），它只发出IO指令，并不等待IO结果，然后就去执行其他代码了。一段时间后，当IO返回结果时，再通知CPU进行处理。
+
+Asynchrony is an alternative to threading for writing concurrent applications. Asynchronous events occur on independent schedules, "out of sync" with one another, *entirely within a single thread*.
+
+Unlike threading, in asynchronous programs the programmer controls when and how voluntary preemption occurs, making it easier to isolate and avoid race conditions.
 
 #### Coroutine（协程）
 
