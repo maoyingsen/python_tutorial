@@ -22,15 +22,17 @@ Oddly enough "Synchronously" means "using the same clock" so when two instructio
 
 ##### 如何解决IO阻塞
 
-1. 多线程（multiproccessing)
+1. 多进程（multiproccessing)
 
 Multiprocessing is a form of *parallel computing*: instructions are executed in an *overlapping time frame* on *multiple physical processors or cores*.(任务在同一个时间窗口中在多个处理器或内核中执行) Each process spawned by the kernel incurs an overhead cost, including an independently-allocated chunk of memory (heap).
 
-2. 线程（Threading）
+2. 多线程（Threading）
 
-Threading is an alternative to multiprocessing, unlike multiprocessing, however, threads exist entirely in a single kernel process, and share a single allocated heap.
+Threading is an alternative to multiprocessing, unlike multiprocessing, however, *threads exist entirely in a single kernel process*, and share a single allocated heap.
 
 The primary downsides to Python threading are *memory safety* and *race conditions*. All child threads of a parent process operate in the same shared memory space. Without additional protections, one thread may overwrite a shared value in memory without other threads being aware of it. Such data corruption would be disastrous.
+
+为了保证多线程安全，Python下的全局解释器锁（英语：Global Interpreter Lock，缩写GIL）防止多个线程执行同一个Python对象，使得任何时候仅有一个线程执行，导致Python多线程性能甚至比单线程更糟。
 
 3. 异步（Asynchrony）
 
@@ -42,19 +44,57 @@ Unlike threading, in asynchronous programs the programmer controls when and how 
 
 #### Coroutine（协程）
 
-在执行函数A时，可随时中断，去执行函数B，然后中断继续执行函数A（The *await* keyword suspends the execution of the current coroutine, and calls the specified awaitable.）
+在执行函数A过程中，可随时挂起（通过await；同时保存上下文context），去执行函数B，执行完函数B后继续执行函数A（The *await* keyword suspends the execution of the current coroutine, and calls the specified awaitable.）
 
-##### 优势
+##### 特定
 
-* 执行效率高，因为子程序切换不是线程切换且切换由内核管理，而是程序自身控制，因此，没有线程切换开销
-* 不需要多线程的锁机制，因为只有一个线程，也不存在同事写变量冲突，在协程中控制共享资源不加锁，只需要判断状态就好了，所以执行效率比多线程高很多
+* 单线程下实现异步和并发（这里并发实为任务间来回切换，不是同时运行）。缓解多线程实现异步和并发中线程切换产生的开销（多线程切换由内核管理，协成中单线程实现异步和并发由程序控制）
+* 不需要多线程的锁机制，因为只有一个线程，也不存在同时写变量冲突，在协程中控制共享资源不加锁，只需要判断状态就好了，所以执行效率比多线程高很多
+* 单线程下实现并发，是将IO阻塞时间用于执行计算，可以提高效率
 
 ##### 实现
 
 * Python对协程的支持，是通过生成器（Generator）实现的，协程师遵循某些规则的生成器。
-* Python 3.4后内置了asyncio标准库，官方真正实现了协程这一特性，3.5中引入async/await语法
+* Python 3.4后内置了asyncio标准库，官方真正实现了协程这一特性，3.5中引入async/await语法，即，*@asyncio.coroutine*等同于*async*，*yield from*替换为*await*
 
-The await keyword tells Python not to wait for its completion; but to send the control back to the caller immediately and continue processing.
+##### 名词/概念
+
+* Any object which can be awaited (voluntarily preempted by a coroutine) is called an *awaitable*.
+* The await keyword suspends the execution of the current coroutine and calls the specified awaitable.
+* Awaitables can be gathered as a group by using asyncio.gather(awaitebles)
+* The event loop controls the scheduling and communication of awaitable objects. Every asyncio program has at least one event loop.
+
+##### 代码实例
+
+*asyncio.sleep(1)*（属于awaitable类型）可以看作是耗时1秒阻塞IO，在此期间，主线程并未等待，而是去执行`EventLoop`中其他可以执行的`coroutine`了，因此可以实现并发执行。
+
+```python
+import threading
+import asyncio
+
+@asyncio.coroutine
+def hello():
+    print('Hello world! (%s)' % threading.currentThread())
+    yield from asyncio.sleep(1)
+    print('Hello again! (%s)' % threading.currentThread())
+
+loop = asyncio.get_event_loop()
+#tasks = [hello(), hello()]
+#loop.run_until_complete(asyncio.wait(tasks))
+#tasks = []
+loop.run_until_complete(asyncio.gather(hello(), hello()))
+loop.close()
+```
+
+```
+Hello world! (<_MainThread(MainThread, started 140735195337472)>)
+Hello world! (<_MainThread(MainThread, started 140735195337472)>)
+(暂停约1秒)
+Hello again! (<_MainThread(MainThread, started 140735195337472)>)
+Hello again! (<_MainThread(MainThread, started 140735195337472)>)
+```
+
+
 
 https://www.liaoxuefeng.com/wiki/1016959663602400/1048430311230688
 
