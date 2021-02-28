@@ -1,14 +1,63 @@
 [toc]
 
-### Synchronous（同步） vs Asynchronous（异步）vs Coroutine（协程）
+# Mutable vs immutable
 
-##### 什么是同步和异步？
+**Definition**
+
+Every variable in python holds an instance of an object. There are two types of objects in python - **mutable** and **immutable** objects. Every object has three attributes:
+
+- Identity – This refers to the address that the object refers to in the computer’s memory.
+- Type – This refers to the kind of object that is created. For example- integer, list, string etc. 
+- Value – This refers to the value stored by the object. For example – List=[1,2,3] would hold the numbers 1,2 and 3
+
+While ID and Type cannot be changed once it’s created, values can be changed for Mutable objects.
+
+Mutable objects include **lists**, **sets, dictionaries, user defined classes**.
+
+Immutable objects include **numbers(integer, float, decimal, etc.), strings, tuples, frozen sets, user defined classes**
+
+**Application**
+
+Set data type have the following characteristics:
+
+* Sets are unordered
+* Set elements are unique. Duplicated elements are not allowed.
+* **A set itself may be modified, but the elements contained in the set must be of an immutable type**
+
+```python
+from dataclasses import dataclass
+@dataclass
+class OrderLine:
+    orderid: int
+    sku: str
+    qty: int
+
+ol = OrderLine(123, "abc", 10)
+test = set()
+test.add(ol)
+#TypeError: unhashable type: 'OrderLine'
+
+@dataclass(Frozen = True) #setting Frozen = True makes OrderLine objects immutable
+class OrderLine:  
+    orderid: int
+    sku: str
+    qty: int
+      
+ol = OrderLine(123, "abc", 10)
+test.add(ol)
+```
+
+
+
+# Synchronous（同步）vs Asynchronous（异步）
+
+**什么是同步和异步？**
 
 同步和异步是计算机如何处理任务的思想，以下概念可以抽象描述此思想。需要说明的是，同步和异步与线程、进程、CPU无关，一个线程也可以实现异步。
 
 Oddly enough "Synchronously" means "using the same clock" so when two instructions are synchronous they use the same clock and must happen one after the other. "Asynchronous" means "not using the same clock" so the instructions are not concerned with being in step with each other. 
 
-##### 同步可能造成IO阻塞
+**同步可能造成IO阻塞**
 
 <img src="latency.PNG" alt="image" style="zoom:75%;" />
 
@@ -20,7 +69,7 @@ Oddly enough "Synchronously" means "using the same clock" so when two instructio
 
 由于我们要解决的问题是CPU高速执行能力和IO设备的龟速严重不匹配，多线程和多进程只是解决这一问题的一种方法。
 
-##### 如何解决IO阻塞
+**如何解决IO阻塞**
 
 1. 多进程（multiproccessing)
 
@@ -42,29 +91,29 @@ Asynchrony is an alternative to threading for writing concurrent applications. A
 
 Unlike threading, in asynchronous programs the programmer controls when and how voluntary preemption occurs, making it easier to isolate and avoid race conditions.
 
-#### Coroutine（协程）
+**Coroutine（协程）**
 
 在执行函数A过程中，可随时挂起（通过await；同时保存上下文context），去执行函数B，执行完函数B后继续执行函数A（The *await* keyword suspends the execution of the current coroutine, and calls the specified awaitable.）
 
-##### 特定
+**特点**
 
 * 单线程下实现异步和并发（这里并发实为任务间来回切换，不是同时运行）。缓解多线程实现异步和并发中线程切换产生的开销（多线程切换由内核管理，协成中单线程实现异步和并发由程序控制）
 * 不需要多线程的锁机制，因为只有一个线程，也不存在同时写变量冲突，在协程中控制共享资源不加锁，只需要判断状态就好了，所以执行效率比多线程高很多
 * 单线程下实现并发，是将IO阻塞时间用于执行计算，可以提高效率
 
-##### 实现
+**实现**
 
-* Python对协程的支持，是通过生成器（Generator）实现的，协程师遵循某些规则的生成器。
+* Python对协程的支持，是通过生成器（Generator）实现的，协程是遵循某些规则的生成器。
 * Python 3.4后内置了asyncio标准库，官方真正实现了协程这一特性，3.5中引入async/await语法，即，*@asyncio.coroutine*等同于*async*，*yield from*替换为*await*
 
-##### 名词/概念
+**名词/概念**
 
 * Any object which can be awaited (voluntarily preempted by a coroutine) is called an *awaitable*.
 * The await keyword suspends the execution of the current coroutine and calls the specified awaitable.
 * Awaitables can be gathered as a group by using asyncio.gather(awaitebles)
 * The event loop controls the scheduling and communication of awaitable objects. Every asyncio program has at least one event loop.
 
-##### 代码实例
+**代码实例**
 
 *asyncio.sleep(1)*（属于awaitable类型）可以看作是耗时1秒阻塞IO，在此期间，主线程并未等待，而是去执行`EventLoop`中其他可以执行的`coroutine`了，因此可以实现并发执行。
 
@@ -96,27 +145,11 @@ Hello again! (<_MainThread(MainThread, started 140735195337472)>)
 
 
 
-https://www.liaoxuefeng.com/wiki/1016959663602400/1048430311230688
 
-https://www.cnblogs.com/dbf-/p/11143349.html
 
-https://stackabuse.com/overview-of-async-io-in-python-3-7/
 
-https://www.jianshu.com/p/84df78d3225a
 
-https://www.cnblogs.com/tashanzhishi/p/10774515.html
 
-https://djangostars.com/blog/asynchronous-programming-in-python-asyncio/
-
-https://www.capitalone.com/tech/software-engineering/async-processing-in-python-for-faster-data-pipelines/
-
-https://docs.python.org/3/library/asyncio-task.html
-
-https://stackabuse.com/python-async-await-tutorial/
-
-### Inheritance and Composition
-
-(略)
 
 ### Unit Test and Test Cases
 
@@ -424,5 +457,25 @@ class method vs static method vs instance method
 
 3、装饰器：https://zhuanlan.zhihu.com/p/305604008
 
+# 附录
 
+**同步 vs 异步**
+
+https://www.liaoxuefeng.com/wiki/1016959663602400/1048430311230688
+
+https://www.cnblogs.com/dbf-/p/11143349.html
+
+https://stackabuse.com/overview-of-async-io-in-python-3-7/
+
+https://www.jianshu.com/p/84df78d3225a
+
+https://www.cnblogs.com/tashanzhishi/p/10774515.html
+
+https://djangostars.com/blog/asynchronous-programming-in-python-asyncio/
+
+https://www.capitalone.com/tech/software-engineering/async-processing-in-python-for-faster-data-pipelines/
+
+https://docs.python.org/3/library/asyncio-task.html
+
+https://stackabuse.com/python-async-await-tutorial/
 
