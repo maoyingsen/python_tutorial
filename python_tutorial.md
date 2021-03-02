@@ -60,9 +60,9 @@ Unlike threading, in asynchronous programs the programmer controls when and how 
 ##### 名词/概念
 
 * Any object which can be awaited (voluntarily preempted by a coroutine) is called an *awaitable*.
-* The await keyword suspends the execution of the current coroutine and calls the specified awaitable.
-* Awaitables can be gathered as a group by using asyncio.gather(awaitebles)
-* The event loop controls the scheduling and communication of awaitable objects. Every asyncio program has at least one event loop.
+* The *await* keyword suspends the execution of the current coroutine and calls the specified *awaitable*.
+* Awaitables can be gathered as a group by using *asyncio.gather(awaitebles)*
+* The *event loop*(循环消息) controls the scheduling and communication of awaitable objects. Every asyncio program has at least one *event loop*.
 
 ##### 代码实例
 
