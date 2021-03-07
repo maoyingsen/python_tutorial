@@ -143,14 +143,6 @@ Hello again! (<_MainThread(MainThread, started 140735195337472)>)
 Hello again! (<_MainThread(MainThread, started 140735195337472)>)
 ```
 
-
-
-
-
-
-
-
-
 ### Unit Test and Test Cases
 
 * Unit Test: A unit test verifies that one specific aspect of a fundtion's behaviro is correct
@@ -246,8 +238,6 @@ def test_wallet_spend_cash_raises_exception_on_insufficient_amount(empty_wallet)
     with pytest.raises(InsufficientAmount):
         empty_wallet.spend_cash(100)
 ```
-
-
 
 ### Decorator
 
