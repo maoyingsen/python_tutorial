@@ -1,5 +1,13 @@
 [toc]
 
+# Data Serialization and Deserialization
+
+**Definition**
+
+Every programming language has its own data type, the object-oriented programming language can define data type object. Data serialization is the process of converting data objects present in complex data structures into a byte stream for storage, transfer and distribution purposes on physical devices. XML, JSON, YAML, CSV are some commonly used data serialization formats. 
+
+<img src="serialization.PNG" alt="image" style="zoom:60%;" />
+
 # Mutable vs immutable
 
 **Definition**
@@ -154,7 +162,7 @@ Hello again! (<_MainThread(MainThread, started 140735195337472)>)
 Hello again! (<_MainThread(MainThread, started 140735195337472)>)
 ```
 
-### Unit Test and Test Cases
+# Unit Test and Test Cases
 
 * Unit Test: A unit test verifies that one specific aspect of a fundtion's behaviro is correct
 * Test Case: A test case is a collection of unit tests that together prove that a function behaves as it's supposed to, within the full range of situations you expect it to handle.
@@ -163,10 +171,8 @@ Hello again! (<_MainThread(MainThread, started 140735195337472)>)
 
 ```python
 # wallet.py
-
 class InsufficientAmount(Exception):
     pass
-
 
 class Wallet(object):
 
@@ -184,10 +190,8 @@ class Wallet(object):
 
 ```python
 # test_wallet.py
-
 import pytest
 from wallet import Wallet, InsufficientAmount
-
 
 def test_default_initial_amount():
     wallet = Wallet()
@@ -217,7 +221,6 @@ def test_wallet_spend_cash_raises_exception_on_insufficient_amount():
 
 ```python
 # test_wallet.py
-
 import pytest
 from wallet import Wallet, InsufficientAmount
 
@@ -250,9 +253,7 @@ def test_wallet_spend_cash_raises_exception_on_insufficient_amount(empty_wallet)
         empty_wallet.spend_cash(100)
 ```
 
-
-
-### Decorator
+# Decorator（装饰器）
 
 一切皆对象，我们在开发过程中定义的变量、方程、类、实例等都是对象，并且这些对象是可以传递的，对象间的可传递性可以为我们实现一个“闭包”，而“闭包”就是实现一个装饰器的基础。装饰器可以在不修改原方法的情况下，给方法增加额外的功能。
 
@@ -442,11 +443,7 @@ print(router.call('/page2'))
 this is page2
 ```
 
-
-
-
-
-### Method Type
+# Method Type
 
 class method vs static method vs instance method 
 
