@@ -8,6 +8,71 @@ Every programming language has its own data type, the object-oriented programmin
 
 <img src="serialization.PNG" alt="image" style="zoom:60%;" />
 
+**JSON Serialization/Deserialization**
+
+JSON is a lightweight data-interchange format and has become the most popular medium of exchanging data over the web. Also, it's the most widely used format for the REST APIs.
+
+* *JSON serialization or encoding*: The process of converting a python object to a json one
+* *JSON deserialization or decoding*: converting json object to python one.
+
+The *built-in json module of Python* (i.e. json.dump) **only** knows how to serialize *Python primitives types* (e.g., dictionary, lists, strings, numbers, None, etc.) . If  encode a custome Python object (i.e. Order) into a JSON format, you received a TypeError: *object of type Order is not JSON serializable*.
+
+```python
+import json
+dict_object = dict(name='Tom', age=28, sex='male', score=100)
+# The dumps() method returns a string, which is the standard JSON string.
+json.dumps(dict_object)
+```
+
+```
+'{"name": "Tom", "age": 28, "sex": "male", "score": 100}'
+```
+
+```python
+import json
+class Employee(object):
+    def __init__(self, name, department):
+        self.name = name
+        self.department = department
+employee = Employee('Tom', 'Dev')
+print(json.dumps(employee))
+```
+
+```
+TypeError: Object of type 'Employee' is not JSON serializable
+```
+
+In order to serialize the custom object, we use:
+
+```python
+import json
+
+class Employee(object):
+    def __init__(self, name, department):
+        self.name = name
+        self.department = department
+    # This method can return a python dict object by the class instance.And the dict object can be serialized to JSON.
+    def employee2dict(self, employee):
+        return {'name': employee.name,'department': employee.department}
+employee = Employee('Tom', 'Dev')
+print(json.dumps(employee, default=employee.employee2dict))
+```
+
+Alternatively, we can use the *marshmallow* package which can validate the input data.
+
+```python
+from marshmallow import Schema, fields
+class EmployeeSchema(Schema):
+	name = fields.Str()
+    department = fields.Str()
+    
+es = EmployeeSchema()
+employee = Employee('Tom', 'Dev')
+print(es.dumps(employee))
+```
+
+
+
 # Mutable vs immutable
 
 **Definition**
@@ -456,6 +521,102 @@ class method vs static method vs instance method
 2、单元测试 vs 集成测试 vs 系统测试 vs 验收测试： https://segmentfault.com/a/1190000009358979?utm_source=sf-related
 
 3、装饰器：https://zhuanlan.zhihu.com/p/305604008
+
+# Database Connection
+
+**Engine**
+
+* The *engine* is how SQLAlchemy communicates with your database. 
+* When creating the *engine* you should add your database URL.
+
+```python
+from sqlalchemy import create_engine
+engine = create_engine('sqlite:///:memory:', echo = True)
+```
+
+**Session**
+
+* The SQLAlchemy ORM must have a *session* to make the middle-ground between the objects we will deal with in Python and the engine that actually communicates with the database.
+* You will have to create the Session object everytime you want to communicate with the database.
+* We can create the *session* by using function *sessionmaker* that we'll pass our engine to.
+
+```python
+from sqlalchemy.orm import sessionmaker
+Session = sessionmaker(bind=engine)
+```
+
+* You should call session make once in your application at the global scope, and once you have access to the custom Session class, you can instantiate it as many times as you need without passing any arguments to it.
+
+```python
+session = Session()
+```
+
+# context manager(上下文管理器)
+
+**context manager is a really nice Pythonic way of visually grouping code into blocks that we want happen atomically (atomic operation)**
+
+```python
+import sqlite3
+
+class DataConn:
+    def __init__(self,db_name):
+        self.db_name = db_name
+        print("Input the DB")
+
+    def __enter__(self):
+        self.conn = sqlite3.connect(self.db_name)
+        return self.conn
+        print("Connect to the DB")
+
+    def __exit__(self,exc_type,exc_val,exc_tb):
+        print("Disconnect to the DB")
+        self.conn.close()
+        if exc_val:
+            raise
+
+if __name__ == "__main__":
+    db = "D:\\tutorial\\Architecture_Patterns_with_Python\\coding\\cha2\\db_test.db"
+    with DataConn(db) as conn:
+        print("Manipulate the DB")
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM test")
+        for row in cursor:
+            print(row[0], row[1], row[2])
+```
+
+```
+Input the DB
+Manipulate the DB
+1 lamp 13
+Disconnect to the DB
+```
+
+The ```__exit__``` method is called when execution leaves the context **or there is an exception**.
+
+```python
+if __name__ == "__main__":
+    db = "D:\\tutorial\\Architecture_Patterns_with_Python\\coding\\cha2\\db_tes.db" # db_tes.db doesn't exist
+    with DataConn(db) as conn:
+        print("Manipulate the DB")
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM test")
+        for row in cursor:
+            print(row[0], row[1], row[2])
+```
+
+```
+Input the DB
+Manipulate the DB
+Disconnect to the DB
+Traceback (most recent call last):
+  File "context_manager.py", line 26, in <module>
+    print(row[0], row[1], row[2])
+  File "context_manager.py", line 24, in <module>
+    cursor.execute("SELECT * FROM test")
+sqlite3.OperationalError: no such table: test
+```
+
+
 
 # 附录
 
